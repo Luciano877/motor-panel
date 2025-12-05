@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Panel de Control de Motores</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+  <style>
+    .led {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: gray;
+      display: inline-block;
+      margin-left: 10px;
+    }
+  </style>
+</head>
+
+<body class="p-4">
+
+<h2>Panel de Control de Motores</h2>
+<div id="status">🔴 Desconectado</div>
+<hr>
+
+<!-- Botones -->
+<div class="btn-group mb-3">
+  <button class="btn btn-danger" onclick="sendCommand('left')">Izquierda</button>
+  <button class="btn btn-primary" onclick="sendCommand('right')">Derecha</button>
+  <button class="btn btn-secondary" onclick="sendCommand('stop')">Stop</button>
+</div>
+
+<!-- Velocidad -->
+<div class="mb-3">
+  <label>Velocidad:</label>
+  <input id="speed" type="range" min="0" max="1" step="0.01" value="0.5">
+  <span id="speedVal">0.5</span>
+</div>
+
+<!-- LEDs -->
+<div>
+  LED Izquierda: <span id="ledLeft" class="led"></span><br>
+  LED Derecha: <span id="ledRight" class="led"></span>
+</div>
+
+<script>
+// ------------------ FIREBASE ------------------
+const firebaseConfig = {
+  // Pega aquí tus credenciales de Firebase
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ------------------ MQTT ------------------
+const SERVER = "wss://broker.hivemq.com:8884/mqtt";
+const TOPIC = "echowalk/motores/cmd";
+
+const client = mqtt.connect(SERVER);
+
+client.on("connect", () => {
+  document.getElementById("status").innerHTML = "🟢 Conectado (MQTT)";
+});
+
+// ------------------ FUNCIONES ------------------
+function sendCommand(action) {
+  const speed = parseFloat(document.getElementById("speed").value);
+
+  const data = { action, speed, timestamp: Date.now() };
+
+  // Enviar a MQTT
+  client.publish(TOPIC, JSON.stringify(data));
+
+  // Guardar en Firebase
+  db.ref("motor/estado").set(data);
+
+  // Log de movimientos
+  db.ref("motor/logs").push(data);
+
+  // Actualizar LEDs
+  updateLEDs(action);
+}
+
+function updateLEDs(action) {
+  document.getElementById("ledLeft").style.background = (action === "left") ? "red" : "gray";
+  document.getElementById("ledRight").style.background = (action === "right") ? "green" : "gray";
+}
+
+document.getElementById("speed").oninput = (e) => {
+  document.getElementById("speedVal").innerText = e.target.value;
+};
+</script>
+
+</body>
+</html>
