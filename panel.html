@@ -1,399 +1,155 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Panel - Control Motor (App)</title>
+  <meta charset="UTF-8" />
+  <title>Panel de Control</title>
 
-  <!-- Estilos: diseño tipo app -->
   <style>
-    :root{
-      --bg:#0f1724;
-      --card:#0b1220;
-      --accent:#06b6d4;
-      --accent-2:#10b981;
-      --danger:#ef4444;
-      --muted:#94a3b8;
-      --glass: rgba(255,255,255,0.03);
-      --btn-shadow: 0 8px 20px rgba(2,6,23,0.6);
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
-    }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071029 0%, #081226 60%);color:#e6eef6}
-    .app {
-      max-width:980px;
-      margin:28px auto;
-      padding:20px;
-    }
-    .header {
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:12px;
-      margin-bottom:18px;
-    }
-    .brand {
-      display:flex;
-      align-items:center;
-      gap:12px;
-    }
-    .logo {
-      width:56px;height:56px;border-radius:12px;
-      background:linear-gradient(135deg,var(--accent),var(--accent-2));
-      display:flex;align-items:center;justify-content:center;font-weight:700;
-      box-shadow: 0 6px 16px rgba(10,20,30,0.6);
-    }
-    h1{font-size:20px;margin:0}
-    p.lead{color:var(--muted);margin:0;font-size:13px}
-
-    .card {
-      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:14px;padding:18px;box-shadow: var(--btn-shadow);backdrop-filter: blur(6px);
-      border:1px solid rgba(255,255,255,0.03);
+    body {
+      background: #111;
+      color: #fff;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 30px;
     }
 
-    .grid {
-      display:grid;
-      grid-template-columns: 1fr 360px;
-      gap:18px;
-    }
-    @media (max-width:880px){
-      .grid{grid-template-columns:1fr; }
+    h1 {
+      margin-bottom: 20px;
     }
 
-    /* Controls area */
-    .controls{
-      display:grid;
-      grid-template-columns: repeat(3,1fr);
-      gap:12px;
+    .container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+      margin: 30px auto;
+      max-width: 600px;
     }
-    .big-btn{
-      background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-      border-radius:12px;padding:18px;text-align:center;color:#fff;border:1px solid rgba(255,255,255,0.03);
-      cursor:pointer; user-select:none; transition: transform .08s ease, box-shadow .12s ease;
-      box-shadow: 0 6px 18px rgba(2,6,23,0.6);
-      display:flex;align-items:center;justify-content:center;flex-direction:column; gap:8px;
-    }
-    .big-btn:active{ transform: translateY(2px); }
-    .big-btn .label{font-size:14px;color:var(--muted)}
-    .big-btn .main{font-size:18px;font-weight:700}
 
-    .big-btn.green{ background: linear-gradient(180deg,#065f46,#10b981); color:white; }
-    .big-btn.blue{ background: linear-gradient(180deg,#075985,#06b6d4); color:white; }
-    .big-btn.red{ background: linear-gradient(180deg,#991b1b,#ef4444); color:white; }
+    button {
+      background: #222;
+      border: 2px solid #0f0;
+      color: #0f0;
+      padding: 18px;
+      font-size: 18px;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: 0.2s;
+    }
 
-    .panel-right{
-      display:flex;flex-direction:column;gap:12px;
+    button:hover {
+      background: #0f0;
+      color: #000;
     }
-    .status-row{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .status {
-      display:flex;align-items:center;gap:12px;
-      padding:10px;border-radius:10px;background:var(--glass);border:1px solid rgba(255,255,255,0.02)
+
+    .ledBox {
+      margin-top: 30px;
+      padding: 20px;
+      background: #222;
+      border-radius: 10px;
+      display: inline-block;
+      width: 60%;
     }
+
     .led {
-      width:14px;height:14px;border-radius:50%;background:#263241;border:1px solid rgba(0,0,0,0.2);
-      box-shadow: inset 0 -3px 8px rgba(0,0,0,0.6);
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      margin: 5px auto;
+      background: red;
     }
-    .led.on { box-shadow: 0 0 12px rgba(255,255,255,0.06), 0 0 10px rgba(255,255,255,0.02) inset; }
-    .led.right.on{ background: linear-gradient(180deg,#065f46,#10b981); }
-    .led.left.on{ background: linear-gradient(180deg,#0ea5e9,#06b6d4); }
-    .led.speed.on{ background: linear-gradient(180deg,#d97706,#f59e0b); }
-
-    .speed-box { padding:12px;border-radius:10px;background:rgba(255,255,255,0.02); display:flex;flex-direction:column;gap:10px; }
-    .speed-value { font-size:22px;font-weight:800;letter-spacing:0.6px; }
-    .slider{ width:100%; }
-
-    .logs{max-height:220px;overflow:auto;padding:10px;border-radius:8px;background:rgba(255,255,255,0.01); font-size:13px;color:var(--muted)}
-    .log-item{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.02);}
-
-    .small{font-size:12px;color:var(--muted)}
-    footer{margin-top:18px;text-align:center;color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
-  <div class="app">
-    <div class="header">
-      <div class="brand">
-        <div class="logo">P</div>
-        <div>
-          <h1>Panel - Control Motor</h1>
-          <p class="lead">App responsive • Control en tiempo real • Compatible móvil/PC</p>
-        </div>
-      </div>
 
-      <div>
-        <div style="text-align:right">
-          <div id="connStatus" class="small">Conexión: <strong id="connLabel">—</strong></div>
-          <div style="margin-top:6px" class="small">Proyecto: <strong>panel-82db1</strong></div>
-        </div>
-      </div>
-    </div>
+  <h1>Panel de Control del Motor</h1>
 
-    <div class="grid">
-      <!-- LEFT: main controls -->
-      <div class="card">
+  <!-- BOTONES DEL PANEL -->
+  <div class="container">
+    <button id="btnIzquierda">⟵ Izquierda</button>
+    <button id="btnDerecha">Derecha ⟶</button>
 
-        <div style="display:flex;gap:12px;align-items:center;margin-bottom:12px;">
-          <div class="status">
-            <div style="display:flex;flex-direction:column">
-              <div class="small">Dirección</div>
-              <div id="dirLabel" style="font-weight:800">—</div>
-            </div>
-            <div style="width:12px"></div>
-            <div class="status" style="background:transparent;border:0;padding:0">
-              <div style="display:flex;flex-direction:column;margin-left:8px">
-                <div class="small">Encendido</div>
-                <div id="runLabel" style="font-weight:800">—</div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <button id="btnVelUp">🔼 Velocidad +</button>
+    <button id="btnVelDown">🔽 Velocidad -</button>
 
-        <div class="controls" style="margin-bottom:14px">
-          <div class="big-btn blue" onclick="moveLeft()">
-            <div class="main">⬅</div>
-            <div class="label">Izquierda</div>
-          </div>
-
-          <div class="big-btn green" onclick="startMotor()">
-            <div class="main">▶</div>
-            <div class="label">Iniciar</div>
-          </div>
-
-          <div class="big-btn red" onclick="moveRight()">
-            <div class="main">➡</div>
-            <div class="label">Derecha</div>
-          </div>
-
-          <div class="big-btn" onclick="speedUp()">
-            <div class="main">🔼</div>
-            <div class="label">Vel +</div>
-          </div>
-
-          <div class="big-btn" onclick="stopMotor()">
-            <div class="main">⏹</div>
-            <div class="label">Detener</div>
-          </div>
-
-          <div class="big-btn" onclick="speedDown()">
-            <div class="main">🔽</div>
-            <div class="label">Vel -</div>
-          </div>
-        </div>
-
-        <div class="speed-box" style="margin-bottom:12px">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div class="small">Velocidad</div>
-            <div class="speed-value" id="speedLabel">50%</div>
-          </div>
-          <input id="speedSlider" class="slider" type="range" min="0" max="100" value="50" />
-          <div class="small">Controla la potencia pwm / velocidad</div>
-        </div>
-
-        <div class="small" style="margin-bottom:6px">Logs recientes</div>
-        <div class="logs" id="logs"></div>
-
-      </div>
-
-      <!-- RIGHT: status + leds -->
-      <div class="panel-right">
-        <div class="card" style="display:flex;flex-direction:column;gap:12px;">
-          <div class="status-row">
-            <div>
-              <div class="small">Indicadores físicos</div>
-              <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div id="ledLeft" class="led left"></div>
-                  <div class="small">Izquierda</div>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div id="ledRight" class="led right"></div>
-                  <div class="small">Derecha</div>
-                </div>
-                <div style="display:flex;align-items:center;gap:8px">
-                  <div id="ledSpeed" class="led speed"></div>
-                  <div class="small">Alta velocidad</div>
-                </div>
-              </div>
-            </div>
-
-            <div style="min-width:140px">
-              <div class="small">Última actualización</div>
-              <div id="lastUpdate" style="font-weight:700">—</div>
-            </div>
-          </div>
-
-          <div>
-            <div class="small">Estado completo (Realtime)</div>
-            <pre id="rawState" style="background:rgba(255,255,255,0.02);padding:10px;border-radius:8px;color:var(--muted);font-size:13px;max-height:160px;overflow:auto">—</pre>
-          </div>
-        </div>
-
-        <div class="card small">
-          <div><strong>Instrucciones rápidas</strong></div>
-          <ol>
-            <li>Abre este panel desde tu navegador (GitHub Pages).</li>
-            <li>Presiona Invoke (Izquierda/Derecha) para mandar comandos.</li>
-            <li>La Raspberry Pi debe estar ejecutando el script que escucha Firebase y mueve el motor.</li>
-          </ol>
-        </div>
-
-      </div>
-    </div>
-
-    <footer>Panel responsive • panel-82db1-default-rtdb • Hecho para tu proyecto</footer>
+    <button id="btnStart">▶ Iniciar</button>
+    <button id="btnStop">⏹ Parar</button>
   </div>
 
-  <!-- Script: Firebase (módulos) -->
+  <!-- INDICADORES -->
+  <div class="ledBox">
+    <h3>Indicadores</h3>
+
+    <p>Movimiento:</p>
+    <div id="ledMov" class="led"></div>
+
+    <p>Velocidad:</p>
+    <div id="ledVel" class="led"></div>
+  </div>
+
+  <!-- FIREBASE -->
   <script type="module">
-    // imports (módulos)
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+
+    import { initializeApp }
+      from "https://www.gstatic.com/firebasejs/12.6.0/firebase-app.js";
+
     import {
-      getDatabase, ref, set, onValue, push, serverTimestamp
+      getDatabase, ref, set, onValue
     } from "https://www.gstatic.com/firebasejs/12.6.0/firebase-database.js";
 
-    // ==== CONFIG del proyecto (tu configuración) ====
+    // CONFIGURACIÓN FIREBASE
     const firebaseConfig = {
       apiKey: "AIzaSyAN8DfAk7SxOo8Gq4WfXicMtbMwXoQ4kqc",
       authDomain: "panel-82db1.firebaseapp.com",
-      databaseURL: "https://panel-82db1-default-rtdb.firebaseio.com",
+      databaseURL: "https://panel-82db1-default-rtdb.firebaseio.com/",
       projectId: "panel-82db1",
       storageBucket: "panel-82db1.firebasestorage.app",
       messagingSenderId: "1055119080630",
-      appId: "1:1055119080630:web:8708b47fd8fd9c43d83a17"
+      appId: "1:1055119080630:web:8708b47fd8fd9c43d83a17",
+      measurementId: "G-FRTMNJPLF6"
     };
 
-    // Inicializa Firebase
     const app = initializeApp(firebaseConfig);
     const db = getDatabase(app);
 
-    // referencias
-    const stateRef = ref(db, "motor/state");
-    const logsRef = ref(db, "motor/logs");
-
-    // UI elementos
-    const connLabel = document.getElementById("connLabel");
-    const dirLabel = document.getElementById("dirLabel");
-    const runLabel = document.getElementById("runLabel");
-    const speedLabel = document.getElementById("speedLabel");
-    const speedSlider = document.getElementById("speedSlider");
-    const logsEl = document.getElementById("logs");
-    const rawState = document.getElementById("rawState");
-    const lastUpdate = document.getElementById("lastUpdate");
-    const ledLeft = document.getElementById("ledLeft");
-    const ledRight = document.getElementById("ledRight");
-    const ledSpeed = document.getElementById("ledSpeed");
-
-    // Estado local
-    let localState = {
-      dir: null, // 'left' | 'right' | null
-      running: false,
-      speed: 50 // 0..100
-    };
-
-    // Actualiza UI segun state
-    function renderState(s) {
-      if(!s) s = localState;
-      dirLabel.innerText = s.dir ? (s.dir === "left" ? "Izquierda" : "Derecha") : "—";
-      runLabel.innerText = s.running ? "ON" : "OFF";
-      speedLabel.innerText = (s.speed ?? localState.speed) + "%";
-      speedSlider.value = s.speed ?? localState.speed;
-      rawState.innerText = JSON.stringify(s, null, 2);
-      lastUpdate.innerText = s.updatedAt ? new Date(s.updatedAt).toLocaleString() : "—";
-
-      // leds
-      ledLeft.classList.toggle("on", s.dir === "left");
-      ledRight.classList.toggle("on", s.dir === "right");
-      ledSpeed.classList.toggle("on", (s.speed ?? 0) >= 70);
-    }
-
-    // Guardar estado en la DB y push log
-    async function writeState(newState) {
-      const payload = {
-        ...localState,
-        ...newState,
-        updatedAt: Date.now()
-      };
-      // SET state
-      await set(stateRef, payload);
-      // push log
-      await push(logsRef, {
-        action: newState.action || null,
-        dir: payload.dir || null,
-        speed: payload.speed,
-        running: payload.running,
-        ts: serverTimestamp()
+    // ---------- FUNCIONES PARA ENVIAR A FIREBASE ----------
+    function enviar(ruta, valor) {
+      set(ref(db, ruta), {
+        valor: valor,
+        timestamp: Date.now()
       });
     }
 
-    // Listeners de UI
-    function moveLeft(){ localState.dir="left"; localState.running=true; writeState({dir:"left", running:true, action:"move_left", speed: localState.speed}); }
-    function moveRight(){ localState.dir="right"; localState.running=true; writeState({dir:"right", running:true, action:"move_right", speed: localState.speed}); }
-    function startMotor(){ localState.running=true; writeState({running:true, action:"start", dir: localState.dir, speed: localState.speed}); }
-    function stopMotor(){ localState.running=false; localState.dir=null; writeState({running:false, dir:null, action:"stop", speed: localState.speed}); }
-    function speedUp(){ localState.speed = Math.min(100, (localState.speed||50) + 10); writeState({speed: localState.speed, action:"speed_up"}); }
-    function speedDown(){ localState.speed = Math.max(0, (localState.speed||50) - 10); writeState({speed: localState.speed, action:"speed_down"}); }
+    // BOTONES
+    document.getElementById("btnIzquierda").onclick = () => enviar("motor/movimiento", "IZQUIERDA");
+    document.getElementById("btnDerecha").onclick = () => enviar("motor/movimiento", "DERECHA");
+    document.getElementById("btnVelUp").onclick    = () => enviar("motor/velocidad", "UP");
+    document.getElementById("btnVelDown").onclick  = () => enviar("motor/velocidad", "DOWN");
+    document.getElementById("btnStart").onclick    = () => enviar("motor/estado", "START");
+    document.getElementById("btnStop").onclick     = () => enviar("motor/estado", "STOP");
 
-    // Exponer funciones al scope global para los onclicks
-    window.moveLeft = moveLeft;
-    window.moveRight = moveRight;
-    window.startMotor = startMotor;
-    window.stopMotor = stopMotor;
-    window.speedUp = speedUp;
-    window.speedDown = speedDown;
+    // ---------- LEDs EN TIEMPO REAL ----------
+    const ledMov = document.getElementById("ledMov");
+    const ledVel = document.getElementById("ledVel");
 
-    // Slider manual
-    speedSlider.addEventListener("input", (e)=>{
-      localState.speed = parseInt(e.target.value);
-      speedLabel.innerText = localState.speed + "%";
-    });
-    speedSlider.addEventListener("change", (e)=>{
-      localState.speed = parseInt(e.target.value);
-      writeState({speed: localState.speed, action:"speed_slider"});
+    onValue(ref(db, "motor/movimiento"), (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+      ledMov.style.background = "lime";    // encendido
+      setTimeout(() => ledMov.style.background = "red", 500);
     });
 
-    // Escucha en tiempo real del estado en Firebase
-    onValue(stateRef, (snap) => {
-      const val = snap.val();
-      if(val){
-        localState = {...localState, ...val};
-        renderState(localState);
-        connLabel.innerText = "Realtime OK";
-      } else {
-        // si no existe, inicializa
-        writeState({dir:null, running:false, speed: localState.speed, action:"init"});
-        connLabel.innerText = "Realtime init";
-      }
-    }, (err) => {
-      connLabel.innerText = "Error Realtime";
-      console.error("error realtime:", err);
+    onValue(ref(db, "motor/velocidad"), (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+      ledVel.style.background = "cyan";    // encendido
+      setTimeout(() => ledVel.style.background = "red", 500);
     });
-
-    // Cargar últimos logs (limitado)
-    async function loadLogs(limit=30){
-      // usamos onValue en la rama logs y mostramos los últimos
-      onValue(ref(db, "motor/logs"), (snap)=>{
-        const data = snap.val();
-        logsEl.innerHTML = "";
-        if(!data){ logsEl.innerHTML = "<div class='log-item'>Sin logs</div>"; return; }
-        // convertir objeto a array ordenado por ts (firebase serverTimestamp)
-        const arr = Object.keys(data).map(k => ({ id:k, ...data[k] })).sort((a,b)=>{
-          const ta = (a.ts && a.ts) ? a.ts : 0;
-          const tb = (b.ts && b.ts) ? b.ts : 0;
-          return tb - ta;
-        }).slice(0,limit);
-        arr.forEach(it=>{
-          const d = new Date((it.ts && it.ts.seconds) ? it.ts.seconds*1000 : Date.now());
-          const time = d.toLocaleTimeString();
-          const action = it.action || "—";
-          logsEl.innerHTML += `<div class="log-item"><strong>${action}</strong> • dir:${it.dir||"—"} vel:${it.speed||"—"} <div class="small">${time}</div></div>`;
-        });
-      });
-    }
-    loadLogs();
-
-    // inicial render
-    renderState(localState);
 
   </script>
 </body>
 </html>
+
+  </script>
+</body>
+</html>
+
